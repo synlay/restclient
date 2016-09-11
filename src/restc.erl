@@ -120,6 +120,12 @@ construct_url(SchemeNetloc, Path, Query) ->
 
 %%% INTERNAL ===================================================================
 
+-ifdef(restc_json_maps).
+json_decode(Body) -> jsx:decode(Body, [return_maps]).
+-else.
+json_decode(Body) -> jsx:decode(Body).
+-endif.
+
 do_request(post, Type, Url, Headers, Body, Options) ->
     Body2 = encode_body(Type, Body),
     hackney:request(post, Url, Headers, Body2, Options);
@@ -184,7 +190,7 @@ parse_type(Type) ->
     end.
 
 parse_body(_, <<>>)                      -> [];
-parse_body(<<"application/json">>, Body) -> jsx:decode(Body);
+parse_body(<<"application/json">>, Body) -> json_decode(Body);
 parse_body(<<"application/xml">>, Body)  ->
     {ok, Data, _} = erlsom:simple_form(binary_to_list(Body)),
     Data;
